@@ -11,6 +11,8 @@ class Timer:
     def __init__(self):
         self.timer_start_time = None
         self.timer_records = []
+        self.timer_pause_time = None
+        self.timer_paused = False  # New attribute
         self.setup_gui()
         
     def setup_gui(self):
@@ -27,14 +29,17 @@ class Timer:
         self.time_label = tk.Label(self.window, font=self.font_1, fg=FG_COLOR, bg=BG_COLOR, width=200, height=100, anchor="center")
         self.time_label.place(x=100,y=40,width=200,height=100)
         # Timer label
-        self.timer_label = tk.Label(self.window, font=self.font_2, text="00:00", fg=FG_COLOR, bg=BG_COLOR, width=200, height=80, anchor="center")
+        self.timer_label = tk.Label(self.window, font=self.font_2, text="00:00:00", fg=FG_COLOR, bg=BG_COLOR, width=200, height=80, anchor="center")
         self.timer_label.place(x=100,y=140,width=200,height=80)
         # Start button
-        start_button = tk.Button(self.window, text="Start Timer", command=self.start_timer)
-        start_button.place(x=100,y=220,width=70,height=25)
+        start_button = tk.Button(self.window, text="Start", command=self.start_timer)
+        start_button.place(x=100,y=220,width=67,height=25)
         # Stop button
-        stop_button = tk.Button(self.window, text="Stop Timer", command=self.stop_timer)
-        stop_button.place(x=230,y=220,width=70,height=25)
+        stop_button = tk.Button(self.window, text="Stop", command=self.stop_timer)
+        stop_button.place(x=233,y=220,width=67,height=25)
+        # pause button
+        self.pause_button = tk.Button(self.window, text="Pause", command=self.pause_timer)  # New button
+        self.pause_button.place(x=167, y=220, width=66, height=25)
         # Task entry
         self.task_entry = tk.Entry(self.window, textvariable=self.task_name, justify="center")
         self.task_entry.place(x=100,y=420,width=200,height=30)
@@ -47,29 +52,43 @@ class Timer:
         current_time = time.strftime("%H:%M:%S")
         self.time_label.config(text=current_time)
 
-        if self.timer_start_time:
+        if self.timer_start_time and not self.timer_paused:
             elapsed_time = time.time() - self.timer_start_time
-            minutes, seconds = divmod(int(elapsed_time), 60)
-            self.timer_label.config(text=f"{minutes:02}:{seconds:02}")
+            hours, remainder = divmod(elapsed_time, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            self.timer_label.config(text=f"{hours:02.0f}:{minutes:02.0f}:{seconds:02.0f}")
 
         self.window.after(1000, self.update_labels)
 
+    def pause_timer(self):  # New method
+        if self.timer_start_time is not None:
+            if self.timer_paused:
+                self.timer_start_time += time.time() - self.timer_pause_time
+                self.timer_pause_time = None
+                self.timer_paused = False
+                self.pause_button.config(text="Pause")
+            else:
+                self.timer_pause_time = time.time()
+                self.timer_paused = True
+                self.pause_button.config(text="Resume")
+    
     def start_timer(self):
+        if self.timer_paused:
+            self.pause_timer()
         self.timer_start_time = time.time()
         self.current_task = [time.strftime("%Y-%m-%d %H:%M")]
 
     def stop_timer(self):
-        elapsed_time = float(time.time() - self.timer_start_time) # Duration in seconds
-        hours, remainder = divmod(elapsed_time, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        duration = f"{int(hours)} hrs {int(minutes)} mins {int(seconds)} secs" # Duration in hours, minutes, seconds
-        self.listbox.insert(tk.END, f"{self.task_name.get()}: {duration}")
+        if self.timer_start_time is None: # Timer not running
+            return
+        duration = self.timer_label.cget("text") # Duration in seconds
         task_name = self.task_name.get() if self.task_name.get() else "Task"
+        self.listbox.insert(tk.END, f"{task_name}: {duration}")
         self.current_task.extend([time.strftime("%Y-%m-%d %H:%M"), duration, task_name])
         self.timer_records.append(self.current_task)
         self.timer_start_time = None
         self.task_entry.delete(0, tk.END)
-        self.timer_label.config(text="00:00")
+        self.timer_label.config(text="00:00:00")
 
     def on_close(self):
         mode = 'w' if not os.path.isfile('timer_records.csv') else 'a'
