@@ -59,11 +59,13 @@ class Timer:
         self.current_task = [time.strftime("%Y-%m-%d %H:%M")]
 
     def stop_timer(self):
-        elapsed_time = time.time() - self.timer_start_time
-        minutes, seconds = divmod(int(elapsed_time), 60)
-        self.listbox.insert(tk.END, f"{self.task_name.get()}: {minutes} minutes {seconds} seconds")
+        elapsed_time = float(time.time() - self.timer_start_time) # Duration in seconds
+        hours, remainder = divmod(elapsed_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        duration = f"{int(hours)} hrs {int(minutes)} mins {int(seconds)} secs" # Duration in hours, minutes, seconds
+        self.listbox.insert(tk.END, f"{self.task_name.get()}: {duration}")
         task_name = self.task_name.get() if self.task_name.get() else "Task"
-        self.current_task.extend([time.strftime("%Y-%m-%d %H:%M"), elapsed_time, task_name])
+        self.current_task.extend([time.strftime("%Y-%m-%d %H:%M"), duration, task_name])
         self.timer_records.append(self.current_task)
         self.timer_start_time = None
         self.task_entry.delete(0, tk.END)
@@ -76,9 +78,6 @@ class Timer:
             if f.tell() == 0:
                 writer.writerow(['Start Time', 'End Time', 'Duration', 'Task'])
             for record in self.timer_records:
-                hours, remainder = divmod(record[-2], 3600)
-                minutes, seconds = divmod(remainder, 60)
-                record[-2] = f"{int(hours)} hrs {int(minutes)} mins {int(seconds)} secs"
                 writer.writerow(record)
         self.window.destroy()
 
