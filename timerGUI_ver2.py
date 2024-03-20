@@ -3,6 +3,7 @@ from constants import *
 import csv
 import os
 import tkinter as tk
+import time
 
 class TimerGUIWithCSV(TimerGUI):
     def __init__(self, timer):
@@ -10,8 +11,10 @@ class TimerGUIWithCSV(TimerGUI):
 
         # Set new layout
         self.task_listbox.place(x=X_OFFSET+20, y=255, width=80)
+        self.task_listbox.config(justify='center')
         self.duration_listbox.config(width=80)
-        self.switch_button.place(x=X_OFFSET, y=415, width=67, height=25)
+        self.duration_listbox.config(justify='center')
+        self.switch_button.place(x=X_OFFSET+67, y=415, width=66, height=25)
         
         # Create a new listbox for the order of the data
         self.order_listbox = tk.Listbox(self.window, justify='center')
@@ -31,8 +34,44 @@ class TimerGUIWithCSV(TimerGUI):
         self.delete_button = tk.Button(self.window, text="Delete", command=self.delete_item)
         self.delete_button.place(x=X_OFFSET+133, y=415, width=67, height=25)
 
-        self.load_csv()
+        # Create New button
+        self.new_button = tk.Button(self.window, text="New", command=self.new_item)
+        self.new_button.place(x=X_OFFSET, y=415, width=67, height=25)
         
+        self.load_csv()
+    
+    def stop_timer(self): # Overriding the stop_timer method
+        task_name = self.task_name.get() if self.task_name.get() else "Task"
+        task = self.timer.stop_timer(task_name)
+        if task is not None:
+            # Insert the new task and its duration into the listboxes
+            self.task_listbox.insert(0, task_name)
+            self.duration_listbox.insert(0, task[2])
+            self.order_listbox.insert(0, "01")
+
+            # Append the task name to the task
+            task.append(task_name)
+            
+            # Update the order indexes of the other tasks
+            for i in range(1, self.order_listbox.size()):
+                self.order_listbox.delete(i)
+                self.order_listbox.insert(i, f"{i+1:02}")
+            
+            # Clear the task entry and reset the timer label
+            self.task_entry.delete(0, tk.END)
+            self.timer_label.config(text="00:00:00")
+    
+    def new_item(self):
+        self.order_listbox.delete(0, 'end')
+        self.task_listbox.delete(0, 'end')
+        self.duration_listbox.delete(0, 'end')
+        
+        with open('timer_records.csv', 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["-", "-", "-", "-"])
+        
+        self.load_csv()
+    
     def onscroll(self, *args):
         self.task_listbox.yview(*args)
         self.duration_listbox.yview(*args)
@@ -44,11 +83,16 @@ class TimerGUIWithCSV(TimerGUI):
                 reader = csv.reader(f)
                 next(reader)  # Skip the header
                 rows = list(reader)
-                for i, row in enumerate(rows):
+                cnt = 0
+                for row in reversed(rows):
+                    if all(item == "-" for item in row):
+                        break
                     if len(row) >= 4:
-                        self.order_listbox.insert(0, f"{len(rows)-i:02}")
-                        self.task_listbox.insert(0, row[3])
-                        self.duration_listbox.insert(0, row[2])
+                        self.order_listbox.insert(cnt, f"{cnt+1:02}")
+                        self.task_listbox.insert(cnt, row[3])
+                        self.duration_listbox.insert(cnt, row[2])
+                        cnt += 1
+
 
     def delete_item(self):
         selected = self.task_listbox.curselection()
