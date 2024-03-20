@@ -14,7 +14,7 @@ class TimerGUIWithCSV(TimerGUI):
         self.task_listbox.config(justify='center')
         self.duration_listbox.config(width=80)
         self.duration_listbox.config(justify='center')
-        self.switch_button.place(x=X_OFFSET+67, y=415, width=66, height=25)
+        self.topmost_button.place(x=X_OFFSET+67, y=415, width=66, height=25)
         
         # Create a new listbox for the order of the data
         self.order_listbox = tk.Listbox(self.window, justify='center')
@@ -35,7 +35,7 @@ class TimerGUIWithCSV(TimerGUI):
         self.delete_button.place(x=X_OFFSET+133, y=415, width=67, height=25)
 
         # Create New button
-        self.new_button = tk.Button(self.window, text="New", command=self.new_item)
+        self.new_button = tk.Button(self.window, text="New page", command=self.new_item)
         self.new_button.place(x=X_OFFSET, y=415, width=67, height=25)
         
         self.load_csv()

@@ -54,10 +54,4 @@ class Timer:
             writer.writerow(self.current_task)
         
         return self.current_task
-
-    def switch(self):
-        return not self.is_paused
-
-    def on_close(self, records):
-        pass
         

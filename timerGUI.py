@@ -15,7 +15,7 @@ class TimerGUI:
         self.window.title("Little Timer") # Titlew
         self.window.attributes('-topmost', 0) # Default to topmost
         self.task_name = tk.StringVar()
-        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
+
         # Font
         self.font_1 = tkFont.Font(family="Helvetica",size=36,weight="bold")
         self.font_2 = tkFont.Font(family="Helvetica",size=30,weight="bold")
@@ -43,9 +43,9 @@ class TimerGUI:
         # Duration listbox
         self.duration_listbox = tk.Listbox(self.window, justify='center')
         self.duration_listbox.place(x=X_OFFSET+100, y=255, width=100, height=150)
-        # Switch button
-        self.switch_button = tk.Button(self.window, text="Top most", command=self.switch, bg=SWITCH_OFF, relief="raised")
-        self.switch_button.place(x=X_OFFSET+67, y=415, width=66, height=25)
+        # topmost button
+        self.topmost_button = tk.Button(self.window, text="Top most", command=self.topmost, bg=SWITCH_OFF, relief="raised")
+        self.topmost_button.place(x=X_OFFSET+67, y=415, width=66, height=25)
 
     def update_labels(self):
         current_time = self.timer.get_current_time()
@@ -80,17 +80,13 @@ class TimerGUI:
             self.task_entry.delete(0, tk.END)
             self.timer_label.config(text="00:00:00")
 
-    def switch(self):
-        if self.timer.switch():
-            self.window.attributes('-topmost', 1)
-            self.switch_button.config(bg=SWITCH_ON, relief="ridge")
-        else:
+    def topmost(self):
+        if self.window.attributes('-topmost'):
             self.window.attributes('-topmost', 0)
-            self.switch_button.config(bg=SWITCH_OFF, relief="raised")
-    
-    def on_close(self):
-        self.timer.on_close(self.timer.records)
-        self.window.destroy()
+            self.topmost_button.config(bg=SWITCH_OFF, relief="raised")
+        else:
+            self.window.attributes('-topmost', 1)
+            self.topmost_button.config(bg=SWITCH_ON, relief="ridge")
 
     def run(self):
         self.update_labels()
