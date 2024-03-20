@@ -45,9 +45,10 @@ class TimerGUIWithCSV(TimerGUI):
                 next(reader)  # Skip the header
                 rows = list(reader)
                 for i, row in enumerate(rows):
-                    self.order_listbox.insert(0, f"{len(rows)-i:02}")
-                    self.task_listbox.insert(0, row[-1])
-                    self.duration_listbox.insert(0, row[2])
+                    if len(row) >= 4:
+                        self.order_listbox.insert(0, f"{len(rows)-i:02}")
+                        self.task_listbox.insert(0, row[3])
+                        self.duration_listbox.insert(0, row[2])
 
     def delete_item(self):
         selected = self.task_listbox.curselection()
